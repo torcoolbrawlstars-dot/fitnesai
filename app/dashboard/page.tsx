@@ -79,8 +79,8 @@ const T = {
     trainingReadyTitle: "Программа готова!",
     trainingReadyDesc: "Перейдите во вкладку Тренировки",
     trainingEmptyTitle: "Нет программы",
-    trainingEmptyDesc: "Сделайте сканирование тела или сгенерируйте базовую программу по вашим данным.",
-    generateBtn: "Сгенерировать ИИ-программу",
+    trainingEmptyDesc: "Сделайте сканирование тела на главном экране (вкладка Сканирование), чтобы получить персональную программу тренировок и питания.",
+    generateBtn: "Сделать сканирование",
     homeTabTitle: "Обзор",
     progressTabTitle: "Прогресс",
     profileTabTitle: "Профиль",
@@ -138,8 +138,8 @@ const T = {
     trainingReadyTitle: "Program is ready!",
     trainingReadyDesc: "Go to the Training tab",
     trainingEmptyTitle: "No program",
-    trainingEmptyDesc: "Complete a body scan or generate a baseline program using your profile data.",
-    generateBtn: "Generate AI Program",
+    trainingEmptyDesc: "Complete a body scan on the main screen to get a personalized workout and nutrition plan.",
+    generateBtn: "Do a body scan",
     homeTabTitle: "Overview",
     progressTabTitle: "Progress",
     profileTabTitle: "Profile",
@@ -188,7 +188,7 @@ function HomeTab({ user, profile, history, t, lang, router }: {
             </div>
             <Link
               href="/plans"
-              className="btn-primary text-xs px-3 py-1.5 rounded-full flex items-center gap-1"
+              className="btn-primary text-xs px-3 py-1.5 rounded-full flex items-center gap-1 active:scale-95 transition-transform"
             >
               {t.upgrade} <ArrowUpRight size={11} />
             </Link>
@@ -225,7 +225,7 @@ function HomeTab({ user, profile, history, t, lang, router }: {
               <Lock size={18} className="text-lime-400 mx-auto mb-2" />
               <p className="text-sm font-semibold mb-1">{t.freeMoreTitle}</p>
               <p className="text-xs text-zinc-500 mb-3">{t.freeMoreText}</p>
-              <Link href="/plans" className="btn-primary text-xs px-4 py-2 rounded-full inline-flex items-center gap-1">
+              <Link href="/plans" className="btn-primary text-xs px-4 py-2 rounded-full inline-flex items-center gap-1 active:scale-95 transition-transform">
                 {t.freeMoreBtn} <ArrowUpRight size={11} />
               </Link>
             </div>
@@ -349,7 +349,7 @@ function ScanTab({ user, profile, history, setHistory, t, lang }: {
       <div className="mx-5 mb-4 relative">
         <button
           onClick={() => setModeOpen((o) => !o)}
-          className="ios-card w-full flex items-center justify-between cursor-pointer"
+          className="ios-card w-full flex items-center justify-between cursor-pointer active:scale-95 transition-transform"
         >
           <div className="flex items-center gap-2">
             <Flame size={15} className="text-lime-400" />
@@ -597,23 +597,7 @@ function TrainingTab({ history, user, profile, t, lang, router, setHistory }: {
         <div className="mx-5 mb-4 ios-card text-center py-10 flex flex-col items-center">
           <Dumbbell size={32} className="text-zinc-500 mb-3" />
           <p className="text-sm font-semibold text-zinc-300 mb-1">{t.trainingEmptyTitle}</p>
-          <p className="text-xs text-zinc-500 mb-6">{t.trainingEmptyDesc}</p>
-          <button
-            onClick={async () => {
-              setLoading(true);
-              const res = await generateProgram(profile, lang);
-              if (res.result) {
-                addAnalysisFull(res.result, "program_only");
-                setHistory(getHistory());
-              }
-              setLoading(false);
-            }}
-            disabled={loading}
-            className="btn-primary text-sm font-bold px-6 py-3 rounded-full flex items-center justify-center gap-2 cursor-pointer w-full max-w-[240px]"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {t.generateBtn}
-          </button>
+          <p className="text-xs text-zinc-500 mb-6 px-4">{t.trainingEmptyDesc}</p>
         </div>
       ) : isFree ? (
         <div className="mx-5 mb-4 ios-card border border-lime-400/20 text-center py-6">

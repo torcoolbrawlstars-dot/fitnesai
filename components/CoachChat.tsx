@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2, Crown, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Crown, Sparkles, ImagePlus } from "lucide-react";
 import Link from "next/link";
 import type { Profile, FullResult, User } from "@/lib/auth";
 import { coachChat, type ChatMessage } from "@/lib/gemini";
@@ -48,9 +48,11 @@ export default function CoachChat({
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [image, setImage] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const premium = true; // Temporary unlocked for all plans during testing
 
   useEffect(() => {
@@ -64,12 +66,23 @@ export default function CoachChat({
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, open, sending]);
 
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = (ev) => setImage(ev.target?.result as string);
+    r.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && !image) || sending) return;
     setError(false);
     setInput("");
-    const next: ChatMessage[] = [...messages, { role: "user", text }];
+    const imgData = image;
+    setImage(null);
+    const next: ChatMessage[] = [...messages, { role: "user", text, image: imgData || undefined }];
     setMessages(next);
     setSending(true);
     try {
@@ -90,7 +103,7 @@ export default function CoachChat({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t.title}
-        className="fixed bottom-28 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 hover:scale-110 transition-transform cursor-pointer"
+        className="fixed bottom-28 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 active:scale-95 transition-transform cursor-pointer"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>
@@ -118,7 +131,7 @@ export default function CoachChat({
                   </div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="w-8 h-8 grid place-items-center rounded-full bg-white/5 text-zinc-400 hover:text-white transition-colors cursor-pointer">
+              <button onClick={() => setOpen(false)} className="w-8 h-8 grid place-items-center rounded-full bg-white/5 text-zinc-400 active:opacity-80 transition-colors cursor-pointer">
                 <X size={18} />
               </button>
             </div>
@@ -138,6 +151,7 @@ export default function CoachChat({
                           : "rounded-tl-md bg-white/5 border border-white/5 text-zinc-300"
                       }`}
                     >
+                      {m.image && <img src={m.image} alt="upload" className="max-w-full rounded-xl mb-2 border border-white/10" />}
                       {m.text}
                     </div>
                   ))}
@@ -149,22 +163,37 @@ export default function CoachChat({
                   {error && <div className="text-xs text-zinc-500 px-2">{t.error}</div>}
                 </div>
 
-                <div className="p-3 border-t border-white/5 flex gap-2">
-                  <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && send()}
-                    placeholder={t.placeholder}
-                    className="flex-1 rounded-full bg-white/5 border border-white/10 px-4 py-2.5 text-sm outline-none focus:border-lime-400/50 transition-colors placeholder:text-zinc-600"
-                  />
-                  <button
-                    onClick={send}
-                    disabled={sending || !input.trim()}
-                    aria-label="Send"
-                    className="grid place-items-center w-10 h-10 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black disabled:opacity-40 cursor-pointer"
-                  >
-                    <Send size={16} />
-                  </button>
+                <div className="p-3 border-t border-white/5">
+                  {image && (
+                    <div className="relative inline-block ml-3 mb-2">
+                      <img src={image} className="h-16 w-16 object-cover rounded-xl border border-white/10" />
+                      <button onClick={() => setImage(null)} className="absolute -top-2 -right-2 w-6 h-6 grid place-items-center bg-[#0d0d0d] rounded-full border border-white/20 text-white cursor-pointer active:scale-95"><X size={12} /></button>
+                    </div>
+                  )}
+                  <div className="flex gap-2 items-center">
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-white/5 text-zinc-400 active:opacity-80 transition-colors cursor-pointer"
+                    >
+                      <ImagePlus size={18} />
+                    </button>
+                    <input type="file" accept="image/*" className="hidden" ref={fileRef} onChange={handleFile} />
+                    <input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && send()}
+                      placeholder={t.placeholder}
+                      className="flex-1 rounded-full bg-white/5 border border-white/10 px-4 py-2.5 text-sm outline-none focus:border-lime-400/50 transition-colors placeholder:text-zinc-600"
+                    />
+                    <button
+                      onClick={send}
+                      disabled={sending || (!input.trim() && !image)}
+                      aria-label="Send"
+                      className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black disabled:opacity-40 active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <Send size={16} />
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (

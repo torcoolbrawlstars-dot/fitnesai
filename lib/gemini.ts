@@ -335,6 +335,7 @@ export async function generateProgram(profile: Profile, lang: "ru" | "en" = "ru"
 export interface ChatMessage {
   role: "user" | "model";
   text: string;
+  image?: string; // base64 data URI
 }
 
 export async function coachChat(
@@ -371,8 +372,7 @@ ${
 - Сильные стороны: ${latest.strengths.join(", ")}`
     : "Анализ тела ещё не проводился — предложи загрузить фото для точных рекомендаций."
 }
-
-Помогай улучшать тело: тренировки, питание, восстановление, мотивация, техника упражнений. На вопросы не о фитнесе и здоровье мягко возвращай разговор к целям клиента. Не ставь медицинские диагнозы — при жалобах на боль советуй врача.`;
+Пользователь может присылать фото еды: оценивай калорийность, БЖУ и полезность блюда на фото. Запоминай предпочтения, характер и вкусы пользователя из диалога, и адаптируй под него свои советы по тренировкам и питанию. Помогай улучшать тело: тренировки, питание, восстановление, мотивация, техника упражнений. На вопросы не о фитнесе и здоровье мягко возвращай разговор к целям клиента. Не ставь медицинские диагнозы — при жалобах на боль советуй врача.`;
 
   const r = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`,
@@ -381,10 +381,14 @@ ${
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: system }] },
-        contents: history.slice(-20).map((m) => ({
-          role: m.role,
-          parts: [{ text: m.text }],
-        })),
+        contents: history.slice(-20).map((m) => {
+          const parts: any[] = [{ text: m.text }];
+          if (m.image) {
+            const match = /^data:(image\/[a-z0-9+.-]+);base64,(.+)$/i.exec(m.image);
+            if (match) parts.push({ inline_data: { mime_type: match[1], data: match[2] } });
+          }
+          return { role: m.role, parts };
+        }),
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 2048,

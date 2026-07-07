@@ -193,7 +193,7 @@ export default function SplashPage() {
 
             <div className="flex flex-col gap-3 w-full">
               <motion.button
-                whileTap={{ scale: 0.97 }}
+
                 onClick={() => pickLang("ru")}
                 className="ios-card flex items-center gap-4 p-5 cursor-pointer active:opacity-80 transition-opacity"
               >
@@ -205,7 +205,7 @@ export default function SplashPage() {
               </motion.button>
 
               <motion.button
-                whileTap={{ scale: 0.97 }}
+
                 onClick={() => pickLang("en")}
                 className="ios-card flex items-center gap-4 p-5 cursor-pointer active:opacity-80 transition-opacity"
               >
@@ -288,7 +288,7 @@ export default function SplashPage() {
                 </motion.button>
               )}
               <motion.button
-                whileTap={{ scale: 0.97 }}
+
                 onClick={goNext}
                 className="btn-primary flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl text-sm font-bold uppercase tracking-wider cursor-pointer"
               >
@@ -344,14 +344,14 @@ export default function SplashPage() {
             {/* CTA block */}
             <div className="w-full px-5 pb-safe pb-10 flex flex-col gap-3">
               <motion.button
-                whileTap={{ scale: 0.97 }}
+
                 onClick={() => router.push("/register")}
                 className="btn-primary w-full h-14 rounded-2xl text-sm font-bold uppercase tracking-wider cursor-pointer"
               >
                 {lang === "ru" ? "Создать аккаунт" : "Create account"}
               </motion.button>
               <motion.button
-                whileTap={{ scale: 0.97 }}
+
                 onClick={() => router.push("/register?mode=login")}
                 className="btn-secondary w-full h-14 rounded-2xl text-sm font-semibold text-zinc-300 cursor-pointer"
               >
