@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Home, Scan, BarChart2, User } from "lucide-react";
+import { Home, Scan, Dumbbell, BarChart2, User } from "lucide-react";
 
-export type TabId = "home" | "scan" | "progress" | "profile";
+export type TabId = "home" | "scan" | "training" | "progress" | "profile";
 
 interface Tab {
   id: TabId;
@@ -15,6 +15,7 @@ interface Tab {
 const TABS: Tab[] = [
   { id: "home", icon: Home, labelRu: "Главная", labelEn: "Home" },
   { id: "scan", icon: Scan, labelRu: "Сканирование", labelEn: "Scan" },
+  { id: "training", icon: Dumbbell, labelRu: "Тренировки", labelEn: "Training" },
   { id: "progress", icon: BarChart2, labelRu: "Прогресс", labelEn: "Progress" },
   { id: "profile", icon: User, labelRu: "Профиль", labelEn: "Profile" },
 ];

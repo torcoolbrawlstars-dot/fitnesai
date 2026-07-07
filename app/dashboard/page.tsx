@@ -75,6 +75,11 @@ const T = {
     logout: "Выйти",
     noResult: "Нет данных",
     scanTabTitle: "Сканирование тела",
+    trainingTabTitle: "Программа",
+    trainingReadyTitle: "Программа готова!",
+    trainingReadyDesc: "Перейдите во вкладку Тренировки",
+    trainingEmptyTitle: "Нет программы",
+    trainingEmptyDesc: "Сделайте сканирование тела, чтобы ИИ составил план",
     homeTabTitle: "Обзор",
     progressTabTitle: "Прогресс",
     profileTabTitle: "Профиль",
@@ -128,6 +133,11 @@ const T = {
     logout: "Sign out",
     noResult: "No data",
     scanTabTitle: "Body Scan",
+    trainingTabTitle: "Program",
+    trainingReadyTitle: "Program is ready!",
+    trainingReadyDesc: "Go to the Training tab",
+    trainingEmptyTitle: "No program",
+    trainingEmptyDesc: "Complete a body scan for AI to build your plan",
     homeTabTitle: "Overview",
     progressTabTitle: "Progress",
     profileTabTitle: "Profile",
@@ -552,6 +562,50 @@ function ScanResult({ latest, t, isFree, profile, lang }: {
             </div>
           </div>
 
+          {/* Workout Link */}
+          <div className="ios-card bg-lime-400/10 border border-lime-400/20 text-center py-5">
+            <Dumbbell size={18} className="text-lime-400 mx-auto mb-2" />
+            <p className="text-sm font-semibold mb-1 text-lime-400">{t.trainingReadyTitle}</p>
+            <p className="text-xs text-zinc-400 mb-0">{t.trainingReadyDesc}</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function TrainingTab({ history, user, profile, t, lang, router }: {
+  history: AnalysisRecord[]; user: User; profile: Profile;
+  t: (typeof T)[keyof typeof T]; lang: "ru" | "en";
+  router: ReturnType<typeof useRouter>;
+}) {
+  const latest = history[0]?.full;
+  const isFree = user.plan === "free";
+  const genderLabel = profile.gender === "female" ? t.woman : t.man;
+
+  return (
+    <div className="flex-1 overflow-y-auto pb-tab">
+      <div className="px-5 pt-safe pt-16 pb-4">
+        <h1 className="text-3xl font-bold tracking-tight">{t.trainingTabTitle}</h1>
+      </div>
+
+      {!latest ? (
+        <div className="mx-5 mb-4 ios-card text-center py-10">
+          <Dumbbell size={32} className="text-zinc-500 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-zinc-300 mb-1">{t.trainingEmptyTitle}</p>
+          <p className="text-xs text-zinc-500">{t.trainingEmptyDesc}</p>
+        </div>
+      ) : isFree ? (
+        <div className="mx-5 mb-4 ios-card border border-lime-400/20 text-center py-6">
+          <Lock size={18} className="text-lime-400 mx-auto mb-2" />
+          <p className="text-sm font-semibold mb-1">{t.freeMoreTitle}</p>
+          <p className="text-xs text-zinc-500 mb-3">{t.freeMoreText}</p>
+          <button onClick={() => router.push("/plans")} className="btn-primary text-xs px-5 py-2.5 rounded-full inline-flex items-center gap-1 cursor-pointer">
+            {t.freeMoreBtn} <ArrowUpRight size={11} />
+          </button>
+        </div>
+      ) : (
+        <div className="mx-5">
           {/* Workout */}
           <div className="mb-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
@@ -572,7 +626,7 @@ function ScanResult({ latest, t, isFree, profile, lang }: {
           </div>
 
           {/* Nutrition */}
-          <div className="mb-4">
+          <div className="mb-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
               <UtensilsCrossed size={10} className="inline mr-1" />{t.nutrition}{" "}
               <span className="normal-case text-zinc-600 font-normal">({t.nutritionFor(genderLabel, profile.age)})</span>
@@ -605,7 +659,7 @@ function ScanResult({ latest, t, isFree, profile, lang }: {
               ))}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -868,6 +922,9 @@ export default function DashboardPage() {
           )}
           {activeTab === "scan" && (
             <ScanTab user={user} profile={profile} history={history} setHistory={setHistory} t={t} lang={lang} />
+          )}
+          {activeTab === "training" && (
+            <TrainingTab history={history} user={user} profile={profile} t={t} lang={lang} router={router} />
           )}
           {activeTab === "progress" && (
             <ProgressTab history={history} t={t} lang={lang} />
