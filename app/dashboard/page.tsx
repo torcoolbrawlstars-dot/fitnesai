@@ -17,7 +17,7 @@ import {
   getUser, getHistory, getProfile, addAnalysisFull, updateProfile, logout,
   type User, type Profile, type AnalysisRecord, type GoalMode,
 } from "@/lib/auth";
-import { analyzePhoto } from "@/lib/gemini";
+import { analyzePhoto, generateProgram } from "@/lib/gemini";
 import { useLang } from "@/lib/i18n";
 import CoachChat from "@/components/CoachChat";
 import TabBar, { type TabId } from "@/components/TabBar";
