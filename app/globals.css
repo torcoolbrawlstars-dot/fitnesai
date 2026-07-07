@@ -3,6 +3,19 @@
 :root {
   --background: #090909;
   --foreground: #f5f5f7;
+
+  /* iOS Safe Area */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  /* iOS Tab Bar height */
+  --tab-bar-h: 80px;
+
+  /* Accent */
+  --accent: #a3e635;
+  --accent-soft: rgba(163, 230, 53, 0.15);
 }
 
 @theme inline {
@@ -11,33 +24,55 @@
   --font-sans: var(--font-inter);
 }
 
+/* ---------- Reset / Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 html {
   scroll-behavior: smooth;
+  /* Prevent iOS bounce/overscroll on html */
+  overscroll-behavior: none;
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, "SF Pro Display", sans-serif;
+  font-family: var(--font-inter), -apple-system, "SF Pro Display", "SF Pro Text",
+    sans-serif;
   overflow-x: hidden;
+  overscroll-behavior: none;
+  /* Lock to phone width feel */
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
 }
 
+/* Selection */
 ::selection {
   background: rgba(163, 230, 53, 0.4);
 }
 
+/* Scrollbar — thin on desktop, hidden on mobile */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #090909;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #27272a;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
-/* ---------- utility classes (монохром) ---------- */
+/* ---------- Glass ---------- */
 
 .glass {
   background: rgba(255, 255, 255, 0.04);
@@ -47,15 +82,17 @@ body {
 }
 
 .glass-hover {
-  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 .glass-hover:hover {
-  border-color: rgba(163, 230, 53, 0.45);
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px -20px rgba(163, 230, 53, 0.25);
+  border-color: rgba(163, 230, 53, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px -16px rgba(163, 230, 53, 0.22);
 }
+
+/* ---------- Typography ---------- */
 
 .text-gradient {
   background: linear-gradient(120deg, #ffffff 0%, #d4d4d8 55%, #71717a 100%);
@@ -71,34 +108,139 @@ body {
   color: transparent;
 }
 
+/* ---------- Buttons ---------- */
+
 .btn-primary {
   background: linear-gradient(135deg, #d9f99d, #a3e635);
   color: #09090b !important;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: box-shadow 0.3s ease, transform 0.3s ease, filter 0.3s ease;
-  box-shadow: 0 8px 32px -8px rgba(163, 230, 53, 0.5);
+  transition: box-shadow 0.25s ease, transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 8px 28px -8px rgba(163, 230, 53, 0.5);
+}
+.btn-primary:active {
+  transform: scale(0.96);
+  filter: brightness(0.95);
 }
 .btn-primary:hover {
-  transform: translateY(-2px) skewX(-2deg);
   filter: brightness(1.08);
-  box-shadow: 0 16px 48px -8px rgba(163, 230, 53, 0.65);
+  box-shadow: 0 14px 40px -8px rgba(163, 230, 53, 0.65);
 }
 
 .btn-secondary {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(12px);
-  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.btn-secondary:active {
+  transform: scale(0.96);
 }
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* body scan animation */
+/* ---------- iOS App Layout ---------- */
+
+/* App container — phone viewport */
+.app-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--tab-bar-h) + var(--sab));
+}
+
+/* Safe-area-aware padding utilities */
+.pt-safe {
+  padding-top: calc(var(--sat) + 16px);
+}
+.pb-safe {
+  padding-bottom: calc(var(--sab) + 16px);
+}
+.pb-tab {
+  padding-bottom: calc(var(--tab-bar-h) + var(--sab) + 8px);
+}
+
+/* ---------- Tab Bar ---------- */
+
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: calc(var(--tab-bar-h) + var(--sab));
+  padding-bottom: var(--sab);
+  background: rgba(9, 9, 9, 0.88);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding-top: 10px;
+  z-index: 100;
+}
+
+/* ---------- iOS Input Fields ---------- */
+
+.ios-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px; /* prevent iOS zoom on focus */
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ios-input:focus {
+  border-color: rgba(163, 230, 53, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+}
+.ios-input::placeholder {
+  color: #52525b;
+}
+
+/* ---------- Page Transitions ---------- */
+
+.page-slide-in {
+  animation: slideInRight 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.page-slide-out {
+  animation: slideOutLeft 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-40%);
+    opacity: 0;
+  }
+}
+
+/* ---------- Keyframe Animations ---------- */
+
 @keyframes scanline {
   0% {
     top: 4%;
@@ -142,11 +284,25 @@ body {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-14px);
+    transform: translateY(-10px);
   }
 }
 .float {
-  animation: float 7s ease-in-out infinite;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease forwards;
 }
 
 @keyframes grid-move {
@@ -158,8 +314,88 @@ body {
   }
 }
 .bg-grid {
-  background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 48px 48px;
-  animation: grid-move 6s linear infinite;
+  animation: grid-move 8s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ---------- iOS Pill Selector ---------- */
+
+.ios-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ios-pill:active {
+  transform: scale(0.96);
+}
+.ios-pill.active {
+  border-color: rgba(163, 230, 53, 0.55);
+  background: rgba(163, 230, 53, 0.1);
+  color: #a3e635;
+}
+
+/* ---------- iOS Card ---------- */
+
+.ios-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  padding: 16px;
+}
+
+/* ---------- Metric Badge ---------- */
+
+.metric-badge {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* ---------- Onboarding dot indicators ---------- */
+
+.onboarding-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+.onboarding-dot.active {
+  width: 20px;
+  border-radius: 3px;
+  background: #a3e635;
 }

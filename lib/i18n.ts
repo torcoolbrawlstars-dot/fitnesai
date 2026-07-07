@@ -14,6 +14,21 @@ export function setLang(l: Lang) {
   window.location.reload();
 }
 
+/** Устанавливает язык БЕЗ перезагрузки страницы (для онбординга) */
+export function setLangSilent(l: Lang) {
+  localStorage.setItem("bv_lang", l);
+}
+
+/** true = онбординг уже был показан */
+export function hasSeenOnboarding(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("bv_onboarded") === "1";
+}
+
+export function markOnboardingDone() {
+  localStorage.setItem("bv_onboarded", "1");
+}
+
 /* язык подтягивается после гидратации, чтобы не ломать SSR */
 export function useLang(): Lang {
   const [lang, set] = useState<Lang>("ru");

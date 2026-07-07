@@ -1,131 +1,291 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Scan, ArrowRight, Loader2 } from "lucide-react";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { register, getUser } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
-import Link from "next/link";
 
 const T = {
   ru: {
-    title: "Создайте аккаунт",
-    sub: "Тестовая регистрация — данные хранятся только в вашем браузере.",
+    signIn: "Войти",
+    signUp: "Регистрация",
     name: "Имя",
-    namePh: "Иван",
+    namePh: "Иван Иванов",
     email: "Email",
+    emailPh: "you@example.com",
     pass: "Пароль",
     passPh: "Минимум 6 символов",
-    err: "Заполните все поля (пароль — минимум 6 символов)",
-    creating: "Создаём аккаунт…",
-    btn: "Зарегистрироваться",
-    note: "Нажимая кнопку, вы соглашаетесь с условиями использования. Это демо — настоящие письма не отправляются.",
+    errFields: "Заполните все поля",
+    errEmail: "Введите корректный email",
+    errPass: "Пароль минимум 6 символов",
+    errPassMismatch: "Пароли не совпадают",
+    passConfirm: "Подтвердите пароль",
+    passConfirmPh: "Повторите пароль",
+    creating: "Входим…",
+    btnSignIn: "Войти",
+    btnSignUp: "Создать аккаунт",
+    demo: "Демо — данные хранятся только в браузере",
+    noAccount: "Нет аккаунта? ",
+    hasAccount: "Уже есть аккаунт? ",
+    switchSignUp: "Зарегистрироваться",
+    switchSignIn: "Войти",
+    demoHint: "Введите любой email и пароль от 6 символов",
   },
   en: {
-    title: "Create an account",
-    sub: "Test registration — data is stored only in your browser.",
+    signIn: "Sign In",
+    signUp: "Sign Up",
     name: "Name",
-    namePh: "John",
+    namePh: "John Doe",
     email: "Email",
+    emailPh: "you@example.com",
     pass: "Password",
     passPh: "At least 6 characters",
-    err: "Fill in all fields (password — at least 6 characters)",
-    creating: "Creating account…",
-    btn: "Sign up",
-    note: "By clicking the button you agree to the terms of use. This is a demo — no real emails are sent.",
+    errFields: "Please fill in all fields",
+    errEmail: "Enter a valid email",
+    errPass: "Password must be at least 6 characters",
+    errPassMismatch: "Passwords don't match",
+    passConfirm: "Confirm password",
+    passConfirmPh: "Repeat password",
+    creating: "Signing in…",
+    btnSignIn: "Sign In",
+    btnSignUp: "Create account",
+    demo: "Demo mode — data is stored in your browser",
+    noAccount: "No account? ",
+    hasAccount: "Already have an account? ",
+    switchSignUp: "Sign up",
+    switchSignIn: "Sign in",
+    demoHint: "Enter any email and a 6+ character password",
   },
 } as const;
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
-  const t = T[useLang()];
+  const searchParams = useSearchParams();
+  const lang = useLang();
+  const t = T[lang];
+
+  const initMode = searchParams.get("mode") === "login" ? "login" : "register";
+  const [mode, setMode] = useState<"register" | "login">(initMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passConfirm, setPassConfirm] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* сессия сохраняется: уже вошли — сразу в кабинет */
+  const nameRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (getUser()) router.replace("/dashboard");
   }, [router]);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !email.includes("@") || password.length < 6) {
-      setError(t.err);
-      return;
-    }
+  useEffect(() => {
     setError("");
-    setLoading(true);
-    setTimeout(() => {
-      register(name.trim(), email.trim());
-      router.push("/plans");
-    }, 1200);
+  }, [mode]);
+
+  const switchMode = (m: "register" | "login") => {
+    setMode(m);
+    setError("");
   };
 
-  const inputCls =
-    "w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm outline-none focus:border-lime-400/60 transition-colors placeholder:text-zinc-600";
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) return setError(t.errFields);
+    if (!email.includes("@")) return setError(t.errEmail);
+    if (password.length < 6) return setError(t.errPass);
+    if (mode === "register") {
+      if (!name.trim()) return setError(t.errFields);
+      if (password !== passConfirm) return setError(t.errPassMismatch);
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      register(mode === "register" ? name.trim() : email.split("@")[0], email.trim());
+      router.push("/plans");
+    }, 1000);
+  };
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center px-6 py-16">
-      <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] bg-white/5 rounded-full blur-[140px]" />
-      <div className="absolute bottom-0 -right-40 w-[32rem] h-[32rem] bg-lime-400/5 rounded-full blur-[140px]" />
+    <div className="min-h-screen min-h-dvh bg-[#090909] flex flex-col">
+      {/* iOS Navigation Bar */}
+      <div className="flex items-center px-4 pt-safe pt-14 pb-2">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1 text-lime-400 py-2 pr-3 cursor-pointer"
+        >
+          <ChevronLeft size={22} />
+          <span className="text-base font-medium">BodyVision</span>
+        </button>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="glass relative rounded-3xl p-8 sm:p-10 w-full max-w-md"
-      >
-        <Link href="/" className="flex items-center gap-2.5 mb-8">
-          <span className="grid place-items-center w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-200 to-zinc-500">
-            <Scan size={18} className="text-black" />
-          </span>
-          <span className="text-lg font-semibold">
-            BodyVision <span className="text-gradient-accent">AI</span>
-          </span>
-        </Link>
+      {/* Header */}
+      <div className="px-6 pt-4 pb-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-1">
+          {mode === "register" ? t.signUp : t.signIn}
+        </h1>
+        <p className="text-sm text-zinc-500">{t.demo}</p>
+      </div>
 
-        <h1 className="text-2xl font-bold tracking-tight mb-2">{t.title}</h1>
-        <p className="text-sm text-zinc-400 mb-8">{t.sub}</p>
+      {/* Segment Control */}
+      <div className="mx-6 mb-8">
+        <div className="flex bg-white/5 rounded-2xl p-1">
+          {(["register", "login"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                mode === m
+                  ? "bg-white/10 text-white shadow-sm"
+                  : "text-zinc-500"
+              }`}
+            >
+              {m === "register" ? t.signUp : t.signIn}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-zinc-500 mb-2">{t.name}</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t.namePh} className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-zinc-500 mb-2">{t.email}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-zinc-500 mb-2">{t.pass}</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passPh} className={inputCls} />
-          </div>
-
-          {error && <p className="text-sm text-zinc-300 bg-white/10 border border-white/15 rounded-xl px-4 py-2.5">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-full disabled:opacity-70 cursor-pointer"
+      {/* Form */}
+      <div className="flex-1 px-6">
+        <AnimatePresence mode="wait">
+          <motion.form
+            key={mode}
+            initial={{ opacity: 0, x: mode === "register" ? 30 : -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onSubmit={submit}
+            className="flex flex-col gap-4"
           >
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> {t.creating}
-              </>
-            ) : (
-              <>
-                {t.btn} <ArrowRight size={18} />
-              </>
+            {mode === "register" && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                  {t.name}
+                </label>
+                <input
+                  ref={nameRef}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t.namePh}
+                  className="ios-input"
+                  autoComplete="name"
+                />
+              </div>
             )}
-          </button>
-        </form>
 
-        <p className="text-xs text-zinc-500 mt-6 text-center">{t.note}</p>
-      </motion.div>
-    </main>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                {t.email}
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t.emailPh}
+                className="ios-input"
+                autoComplete="email"
+                inputMode="email"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                {t.pass}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t.passPh}
+                  className="ios-input pr-12"
+                  autoComplete={mode === "register" ? "new-password" : "current-password"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 cursor-pointer"
+                >
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {mode === "register" && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                  {t.passConfirm}
+                </label>
+                <input
+                  type="password"
+                  value={passConfirm}
+                  onChange={(e) => setPassConfirm(e.target.value)}
+                  placeholder={t.passConfirmPh}
+                  className="ios-input"
+                  autoComplete="new-password"
+                />
+              </div>
+            )}
+
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl px-4 py-3"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <p className="text-xs text-zinc-600 text-center">{t.demoHint}</p>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full h-14 rounded-2xl text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 mt-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" /> {t.creating}
+                </>
+              ) : mode === "register" ? (
+                t.btnSignUp
+              ) : (
+                t.btnSignIn
+              )}
+            </button>
+          </motion.form>
+        </AnimatePresence>
+      </div>
+
+      {/* Bottom switch */}
+      <div className="px-6 pb-safe pb-12 pt-6 text-center">
+        <p className="text-sm text-zinc-500">
+          {mode === "register" ? t.hasAccount : t.noAccount}
+          <button
+            onClick={() => switchMode(mode === "register" ? "login" : "register")}
+            className="text-lime-400 font-semibold cursor-pointer"
+          >
+            {mode === "register" ? t.switchSignIn : t.switchSignUp}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   );
 }
