@@ -44,13 +44,13 @@ jobs:
             -sdk iphoneos \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -destination 'generic/platform=iOS' \
+            -quiet \
             clean archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGN_ENTITLEMENTS="" \
-            DEVELOPMENT_TEAM="" \
-            | xcpretty || true
+            DEVELOPMENT_TEAM=""
 
       - name: Package .app into .ipa
         run: |
