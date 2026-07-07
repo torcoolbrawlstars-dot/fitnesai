@@ -49,7 +49,7 @@ function buildPrompt(p: Profile, lang: "ru" | "en" = "ru"): string {
 ПЕРСОНАЛИЗАЦИЯ ПРОГРАММЫ:
 - СТРОГО учитывай место тренировок! Если "дом" — только упражнения с собственным весом, гантелями и резинками (отжимания, приседания, планка, выпады, тяга резинки), НИКАКИХ тренажёров и штанг. Если "зал" — полноценные упражнения со штангой, гантелями и тренажёрами.
 - Тренировки подбирай под слабые зоны с фото, пол и возраст. Женщинам — акцент на ягодицы, ноги, кор и тонус без чрезмерной нагрузки на позвоночник; мужчинам — базовые многосуставные упражнения, спина/грудь/плечи. После 40 лет — больше разминки, меньше ударной нагрузки, работа над подвижностью суставов.
-- Питание рассчитай по формуле Миффлина-Сан Жеора с учётом пола, возраста, роста, веса. Женщинам — рацион с достаточным железом, кальцием, полезными жирами (не ниже 1700 ккал без крайней необходимости); мужчинам — больше белка и калорий под набор мышц или сушку в зависимости от процента жира. Подросткам (до 18) — без жёстких дефицитов. После 40 — больше белка для сохранения мышц, омега-3, меньше быстрых углеводов.
+- Питание: ИСПОЛЬЗУЙ СВОИ АНАЛИТИЧЕСКИЕ СПОСОБНОСТИ ИИ для индивидуального расчета калорий и БЖУ! Опирайся на то, что ты видишь на фото, и на данные клиента. Не используй сухие формулы — если видишь на фото лишний жир, делай умный дефицит; если видишь худобу — профицит для набора. Составь детальное, вкусное и реальное меню (конкретные блюда на каждый прием пищи), которое точно впишется в эти калории.
 - Все тексты пиши ${lang === "en" ? "СТРОГО НА АНГЛИЙСКОМ ЯЗЫКЕ (including goal, zones ratings, all recommendations, workout and nutrition)" : "НА РУССКОМ ЯЗЫКЕ"}, кратко и конкретно.
 
 ФОРМАТ ОТВЕТА — строго JSON без markdown, по этой схеме:
@@ -247,6 +247,85 @@ export async function analyzePhoto(image: string, profile: Profile, lang: "ru" |
       lang === "en"
         ? "AI service is unavailable. Showing a calculation based on your data without photo analysis."
         : "AI-сервис недоступен. Показан расчёт по вашим данным без анализа фото.",
+    result: fallbackResult(profile),
+  };
+}
+
+function buildProgramOnlyPrompt(p: Profile, lang: "ru" | "en" = "ru"): string {
+  const genderRu = p.gender === "female" ? "женский" : "мужской";
+  const locationRu = p.location === "gym" ? "тренажёрный зал" : "дом";
+  const bmi = p.weight / Math.pow(p.height / 100, 2);
+  const bodyType = bmi >= 27 ? "Склонность к полноте, высокий процент жира" : bmi < 20 ? "Худощавое, низкий процент жира" : "Среднее, нормальный процент жира";
+  
+  return `Ты — профессиональный фитнес-тренер и спортивный нутрициолог. Тебе нужно составить персональную программу тренировок и питания без фотографии, только по данным.
+
+ДАННЫЕ КЛИЕНТА:
+- Пол: ${genderRu}, Возраст: ${p.age} лет, Рост: ${p.height} см, Вес: ${p.weight} кг (ИМТ: ${bmi.toFixed(1)} - ${bodyType})
+- Место тренировок: ${locationRu}
+- Выбранный режим: ${p.goalMode || "auto"}
+
+ИНСТРУКЦИЯ:
+1. Математически оцени процент жира и мышечной массы на основе роста, веса, пола и возраста. Оценку осанки и баллы поставь средние (70-80). Зоны тела оцени "Средне".
+2. Если режим "auto", выбери цель на основе ИМТ (если ИМТ высокий — похудение, если низкий — набор массы, иначе рекомпозиция).
+3. ТРЕНИРОВКИ: СТРОГО под место тренировок. Дом = без инвентаря/резинки. Зал = штанги и тренажёры.
+4. ПИТАНИЕ: Рассчитай калории и БЖУ под цель. Опиши конкретные приемы пищи (завтрак, обед, ужин).
+5. Язык ответа: ${lang === "en" ? "АНГЛИЙСКИЙ" : "РУССКИЙ"}.
+
+ФОРМАТ ОТВЕТА — строго JSON без markdown по схеме:
+{
+  "valid": true,
+  "goal": "...",
+  "bodyFat": число,
+  "muscle": число,
+  "posture": число,
+  "symmetry": "Хорошая",
+  "score": число,
+  "zones": [{"name": "Плечи", "rating": "Средне"}, ... еще 5 зон],
+  "strengths": ["..."],
+  "weaknesses": ["..."],
+  "recommendations": ["..."],
+  "workout": [{"day": "...", "focus": "...", "exercises": [{"name": "...", "sets": "..."}]}],
+  "nutrition": {"calories": число, "protein": число, "fats": число, "carbs": число, "meals": ["..."], "tips": ["..."]}
+}`;
+}
+
+export async function generateProgram(profile: Profile, lang: "ru" | "en" = "ru"): Promise<AnalyzeResponse> {
+  if (KEY) {
+    try {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: buildProgramOnlyPrompt(profile, lang) }] }],
+            generationConfig: {
+              response_mime_type: "application/json",
+              temperature: 0.5,
+              maxOutputTokens: 8192,
+            },
+          }),
+          signal: AbortSignal.timeout(60_000),
+        }
+      );
+
+      if (r.ok) {
+        const data = await r.json();
+        const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const clean = text.replace(/^```(?:json)?/m, "").replace(/```\s*$/m, "").trim();
+          const parsed = JSON.parse(clean) as FullResult;
+          return { source: "gemini", result: { ...parsed, valid: true } };
+        }
+      }
+    } catch (e) {
+      console.error("Gemini program request failed:", e);
+    }
+  }
+
+  return {
+    source: "fallback",
+    note: lang === "en" ? "AI service unavailable." : "AI-сервис недоступен.",
     result: fallbackResult(profile),
   };
 }

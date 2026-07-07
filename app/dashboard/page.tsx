@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Scan, LogOut, Camera, Loader2, Trophy, Flame, Star, Zap,
+  Scan, LogOut, Camera, Loader2, Trophy, Flame, Star, Zap, Sparkles,
   CalendarDays, History, Crown, ArrowUpRight, UploadCloud,
   CheckCircle2, AlertTriangle, Dumbbell, UtensilsCrossed,
   User as UserIcon, Lock, Settings, ChevronRight, BarChart2,
@@ -79,7 +79,8 @@ const T = {
     trainingReadyTitle: "Программа готова!",
     trainingReadyDesc: "Перейдите во вкладку Тренировки",
     trainingEmptyTitle: "Нет программы",
-    trainingEmptyDesc: "Сделайте сканирование тела, чтобы ИИ составил план",
+    trainingEmptyDesc: "Сделайте сканирование тела или сгенерируйте базовую программу по вашим данным.",
+    generateBtn: "Сгенерировать ИИ-программу",
     homeTabTitle: "Обзор",
     progressTabTitle: "Прогресс",
     profileTabTitle: "Профиль",
@@ -137,7 +138,8 @@ const T = {
     trainingReadyTitle: "Program is ready!",
     trainingReadyDesc: "Go to the Training tab",
     trainingEmptyTitle: "No program",
-    trainingEmptyDesc: "Complete a body scan for AI to build your plan",
+    trainingEmptyDesc: "Complete a body scan or generate a baseline program using your profile data.",
+    generateBtn: "Generate AI Program",
     homeTabTitle: "Overview",
     progressTabTitle: "Progress",
     profileTabTitle: "Profile",
@@ -574,11 +576,13 @@ function ScanResult({ latest, t, isFree, profile, lang }: {
   );
 }
 
-function TrainingTab({ history, user, profile, t, lang, router }: {
+function TrainingTab({ history, user, profile, t, lang, router, setHistory }: {
   history: AnalysisRecord[]; user: User; profile: Profile;
   t: (typeof T)[keyof typeof T]; lang: "ru" | "en";
   router: ReturnType<typeof useRouter>;
+  setHistory: React.Dispatch<React.SetStateAction<AnalysisRecord[]>>;
 }) {
+  const [loading, setLoading] = useState(false);
   const latest = history[0]?.full;
   const isFree = user.plan === "free";
   const genderLabel = profile.gender === "female" ? t.woman : t.man;
@@ -590,10 +594,26 @@ function TrainingTab({ history, user, profile, t, lang, router }: {
       </div>
 
       {!latest ? (
-        <div className="mx-5 mb-4 ios-card text-center py-10">
-          <Dumbbell size={32} className="text-zinc-500 mx-auto mb-3" />
+        <div className="mx-5 mb-4 ios-card text-center py-10 flex flex-col items-center">
+          <Dumbbell size={32} className="text-zinc-500 mb-3" />
           <p className="text-sm font-semibold text-zinc-300 mb-1">{t.trainingEmptyTitle}</p>
-          <p className="text-xs text-zinc-500">{t.trainingEmptyDesc}</p>
+          <p className="text-xs text-zinc-500 mb-6">{t.trainingEmptyDesc}</p>
+          <button
+            onClick={async () => {
+              setLoading(true);
+              const res = await generateProgram(profile, lang);
+              if (res.result) {
+                addAnalysisFull(res.result, "program_only");
+                setHistory(getHistory());
+              }
+              setLoading(false);
+            }}
+            disabled={loading}
+            className="btn-primary text-sm font-bold px-6 py-3 rounded-full flex items-center justify-center gap-2 cursor-pointer w-full max-w-[240px]"
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {t.generateBtn}
+          </button>
         </div>
       ) : isFree ? (
         <div className="mx-5 mb-4 ios-card border border-lime-400/20 text-center py-6">
@@ -924,7 +944,7 @@ export default function DashboardPage() {
             <ScanTab user={user} profile={profile} history={history} setHistory={setHistory} t={t} lang={lang} />
           )}
           {activeTab === "training" && (
-            <TrainingTab history={history} user={user} profile={profile} t={t} lang={lang} router={router} />
+            <TrainingTab history={history} user={user} profile={profile} t={t} lang={lang} router={router} setHistory={setHistory} />
           )}
           {activeTab === "progress" && (
             <ProgressTab history={history} t={t} lang={lang} />
