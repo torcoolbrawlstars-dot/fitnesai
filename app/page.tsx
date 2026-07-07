@@ -133,7 +133,7 @@ export default function SplashPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="flex-1 flex flex-col items-center justify-center gap-6 w-full px-8"
+            className="flex-1 flex flex-col items-center justify-center gap-6 w-full px-5"
           >
             <motion.div
               initial={{ scale: 0, rotate: -20 }}
@@ -180,7 +180,7 @@ export default function SplashPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.4 }}
-            className="flex-1 flex flex-col items-center justify-center gap-8 w-full px-8"
+            className="flex-1 flex flex-col items-center justify-center gap-8 w-full px-5"
           >
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-100 to-zinc-400 flex items-center justify-center">
               <Globe size={28} className="text-black" />
@@ -239,7 +239,7 @@ export default function SplashPage() {
             </div>
 
             {/* Slide content */}
-            <div className="flex-1 flex flex-col items-center justify-center px-8 overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center px-5 overflow-hidden">
               <AnimatePresence custom={dir} mode="wait">
                 <motion.div
                   key={slide}
@@ -276,7 +276,7 @@ export default function SplashPage() {
             </div>
 
             {/* Nav buttons */}
-            <div className="px-6 pb-safe pb-10 flex items-center gap-3">
+            <div className="px-5 pb-safe pb-10 flex items-center gap-3">
               {slide > 0 && (
                 <motion.button
                   initial={{ opacity: 0, x: -10 }}
@@ -310,7 +310,7 @@ export default function SplashPage() {
             className="flex-1 flex flex-col items-center justify-end gap-0 w-full"
           >
             {/* Hero top */}
-            <div className="flex-1 flex flex-col items-center justify-center px-8 pt-safe pt-16 text-center gap-6">
+            <div className="flex-1 flex flex-col items-center justify-center px-5 pt-safe pt-12 text-center gap-5">
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-zinc-100 to-zinc-400 flex items-center justify-center shadow-xl shadow-black/40">
                 <Scan size={36} className="text-black" />
               </div>
@@ -333,7 +333,7 @@ export default function SplashPage() {
                 ).map((f) => (
                   <span
                     key={f}
-                    className="text-xs font-medium px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-300"
+                    className="text-[11px] font-medium px-2.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-300"
                   >
                     {f}
                   </span>
@@ -342,7 +342,7 @@ export default function SplashPage() {
             </div>
 
             {/* CTA block */}
-            <div className="w-full px-6 pb-safe pb-12 flex flex-col gap-3">
+            <div className="w-full px-5 pb-safe pb-10 flex flex-col gap-3">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push("/register")}
@@ -355,7 +355,7 @@ export default function SplashPage() {
                 onClick={() => router.push("/register?mode=login")}
                 className="btn-secondary w-full h-14 rounded-2xl text-sm font-semibold text-zinc-300 cursor-pointer"
               >
-                {lang === "ru" ? "Уже есть аккаунт — Войти" : "Already have account — Sign in"}
+                {lang === "ru" ? "Уже есть аккаунт? Войти" : "Already have account? Sign in"}
               </motion.button>
               <p className="text-center text-xs text-zinc-600 mt-1">
                 {lang === "ru"
