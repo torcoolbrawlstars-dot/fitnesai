@@ -90,7 +90,7 @@ export default function CoachChat({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t.title}
-        className="fixed bottom-6 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 hover:scale-110 transition-transform cursor-pointer"
+        className="fixed bottom-24 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 hover:scale-110 transition-transform cursor-pointer"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>
