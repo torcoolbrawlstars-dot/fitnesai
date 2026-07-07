@@ -938,10 +938,8 @@ export default function DashboardPage() {
       {/* Tab Bar */}
       <TabBar active={activeTab} onChange={setActiveTab} lang={lang} />
 
-      {/* AI Coach (Premium) */}
-      {!isFree && (
-        <CoachChat user={user} profile={profile} latest={latest} lang={lang} />
-      )}
+      {/* AI Coach */}
+      <CoachChat user={user} profile={profile} latest={latest} lang={lang} />
     </div>
   );
 }

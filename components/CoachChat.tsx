@@ -51,7 +51,7 @@ export default function CoachChat({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const premium = user.plan === "premium";
+  const premium = true; // Temporary unlocked for all plans during testing
 
   useEffect(() => {
     try {
