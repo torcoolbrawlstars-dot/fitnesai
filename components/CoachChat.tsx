@@ -90,7 +90,7 @@ export default function CoachChat({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t.title}
-        className="fixed bottom-24 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 hover:scale-110 transition-transform cursor-pointer"
+        className="fixed bottom-28 right-6 z-50 grid place-items-center w-14 h-14 rounded-full bg-gradient-to-br from-lime-300 to-lime-500 text-black shadow-2xl shadow-lime-400/40 hover:scale-110 transition-transform cursor-pointer"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
       </button>
@@ -102,20 +102,25 @@ export default function CoachChat({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.25 }}
-            className="fixed bottom-24 right-6 z-50 w-[min(24rem,calc(100vw-3rem))] h-[32rem] rounded-3xl border border-white/10 bg-[#0d0d0d] shadow-2xl shadow-black/70 flex flex-col overflow-hidden"
+            className="fixed bottom-28 right-6 z-50 w-[min(24rem,calc(100vw-3rem))] h-[32rem] rounded-3xl border border-white/10 bg-[#0d0d0d] shadow-2xl shadow-black/70 flex flex-col overflow-hidden"
           >
             {/* header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5 bg-white/[0.03]">
-              <span className="grid place-items-center w-9 h-9 rounded-full bg-gradient-to-br from-lime-300 to-lime-500">
-                <Sparkles size={16} className="text-black" />
-              </span>
-              <div>
-                <div className="font-semibold text-sm">{t.title}</div>
-                <div className="text-[11px] text-lime-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-                  {t.online}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.03]">
+              <div className="flex items-center gap-3">
+                <span className="grid place-items-center w-9 h-9 rounded-full bg-gradient-to-br from-lime-300 to-lime-500">
+                  <Sparkles size={16} className="text-black" />
+                </span>
+                <div>
+                  <div className="font-semibold text-sm">{t.title}</div>
+                  <div className="text-[11px] text-lime-400 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+                    {t.online}
+                  </div>
                 </div>
               </div>
+              <button onClick={() => setOpen(false)} className="w-8 h-8 grid place-items-center rounded-full bg-white/5 text-zinc-400 hover:text-white transition-colors cursor-pointer">
+                <X size={18} />
+              </button>
             </div>
 
             {premium ? (
