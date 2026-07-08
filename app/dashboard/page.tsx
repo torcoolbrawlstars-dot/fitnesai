@@ -902,6 +902,16 @@ export default function DashboardPage() {
     exit: { opacity: 0, y: -8 },
   };
 
+  const handleUpdatePlan = (newWorkout: any[]) => {
+    if (history.length > 0 && history[0].full) {
+      const updatedFull = { ...history[0].full, workout: newWorkout };
+      const updatedRecord = { ...history[0], full: updatedFull };
+      const newHistory = [updatedRecord, ...history.slice(1)];
+      localStorage.setItem("bv_history", JSON.stringify(newHistory));
+      setHistory(newHistory);
+    }
+  };
+
   return (
     <div className="relative min-h-screen min-h-dvh bg-[#090909] flex flex-col overflow-hidden">
       {/* Ambient */}
@@ -943,7 +953,7 @@ export default function DashboardPage() {
       <TabBar active={activeTab} onChange={setActiveTab} lang={lang} />
 
       {/* AI Coach */}
-      <CoachChat user={user} profile={profile} latest={latest} lang={lang} />
+      <CoachChat user={user} profile={profile} latest={latest} lang={lang} onUpdatePlan={handleUpdatePlan} />
     </div>
   );
 }

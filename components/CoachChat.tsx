@@ -38,11 +38,13 @@ export default function CoachChat({
   profile,
   latest,
   lang,
+  onUpdatePlan,
 }: {
   user: User;
   profile: Profile;
   latest?: FullResult;
   lang: Lang;
+  onUpdatePlan?: (newWorkout: any[]) => void;
 }) {
   const t = T[lang];
   const [open, setOpen] = useState(false);
@@ -87,7 +89,20 @@ export default function CoachChat({
     setSending(true);
     try {
       const reply = await coachChat(next, profile, latest, lang);
-      const withReply: ChatMessage[] = [...next, { role: "model", text: reply }];
+      let replyText = reply;
+      const jsonMatch = reply.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1]);
+          if (parsed.workout && Array.isArray(parsed.workout) && onUpdatePlan) {
+             onUpdatePlan(parsed.workout);
+          }
+        } catch (e) {
+          console.error("Failed to parse workout JSON", e);
+        }
+        replyText = reply.replace(/```json\s*\{[\s\S]*?\}\s*```/, "").trim();
+      }
+      const withReply: ChatMessage[] = [...next, { role: "model", text: replyText }];
       setMessages(withReply);
       localStorage.setItem(CHAT_KEY, JSON.stringify(withReply.slice(-40)));
     } catch {
